@@ -1,0 +1,17 @@
+﻿    .contactList {
+        /*border: solid 1px blue;*/
+        list-style-type: none;
+        padding-left: 0px;
+    }
+
+    .contactList li {
+        /*border: solid 1px red;*/
+        padding: 3px;
+        line-height: 25px;
+    }
+    hr {
+        margin: 0px;
+    }
+    .padding5 {
+        padding: 5px;
+    }

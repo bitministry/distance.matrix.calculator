@@ -1,0 +1,104 @@
+﻿@using System.Configuration
+@model Distance.Business.Entitiy.Contact
+
+
+<div class="row">
+    <div class="form-group">
+        <div class="col-md-4">
+            <label for="selectContactType">Type</label>
+        </div>
+        <div class="col-md-8">
+
+            <select class="multiselect" id="selectContactType" name="ContactType">
+                @foreach (var xs in (new String[] { "BusinessCustomer", "Competitor", "PrivateCustomer" }))
+                {
+                    <option value="@xs" @Html.Raw(xs == @Model.ContactType.ToString() ? "selected" : "")>@xs</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group">
+        <div class="col-md-4">
+            <label for="selectContactType">Name</label>
+        </div>
+        <div class="col-md-8">
+            <input name="Name" placeholder="Name" class="form-control" value="@Model.Name"
+                   style="font-weight: bold;"
+                   data-bv-notempty="true"
+                   data-bv-notempty-message="The last name is required and cannot be empty" />
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="form-group">
+        <div class="col-md-4">
+            <label for="selectContactType">Hires per year</label>
+        </div>
+        <div class="col-md-8">
+            <input name="HiresPerYear" placeholder="Hires Per Year" class="form-control" value="@Model.HiresPerYear"
+                   style="font-weight: bold;"
+                   data-bv-integer
+                   data-bv-integer-message="The value is not an integer" />
+        </div>
+    </div>
+</div>
+
+@if (ConfigurationManager.AppSettings["Google.maps.javascript.apiKey"] != null)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <div id="map-canvas"></div>
+        </div>
+    </div>
+}
+<h4>Comparisons in repository:</h4>
+
+<ul style="list-style-type:none;padding:5px;">
+    @if (Model.DistanceComparisons != null)
+    {
+        foreach (var disco in Model.DistanceComparisons)
+        {
+            <li class="panel panel-default" style="display:inline-block;">
+                <div class="panel-body">
+                    <a href="@Url.Action("DetailsForId", "Disco", new{ id= disco.DistanceComparisonId })">
+                        <span class="label label-success">enterprise</span>
+                    </a>
+                    @foreach (var compeditor in disco.CompetitorsIncluded)
+                    {
+                        <span class="label label-info">@compeditor.Name</span>
+                    }
+                </div>
+            </li>
+        }
+    }
+</ul>
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-2">
+                <label for="selectContactType">Email</label>
+            </div>
+            <div class="col-md-10">
+                <input type="text" name="Email" placeholder="Email" class="form-control" value="@Model.Email"
+                       maxlength="66"
+                       data-bv-stringlength-message="Maximum 66 letters" />
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-2">
+                <label for="selectContactType" onclick="$('#attributeForm').submit()">Phone</label>
+            </div>
+            <div class="col-md-10">
+                <input type="text" name="Phone" placeholder="Phone" class="form-control" value="@Model.Phone"
+                       maxlength="33"
+                       data-bv-stringlength-message="Maximum 33 letters" />
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,180 @@
+﻿@using System.Web.UI.WebControls
+@using Distance.Business
+@using Distance.MVC.Controllers
+@model DistanceComparison 
+
+@{
+    ViewBag.Title = "Distance Comparison";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var lastCompetitorModified = Model.CompetitorsIncluded.Max(c => c.AddressesModified);
+    ViewBag.lastAddressModified =
+        (new[]
+        {
+            lastCompetitorModified,
+            Statics.EnterpriseRootContact.AddressesModified,
+            Model.Customer.AddressesModified
+        }).Max() ?? DateTime.MinValue;
+
+    ViewBag.lastReport = (Model.ComparisonReports != null && Model.ComparisonReports.Count > 0 )
+        ? Model.ComparisonReports.Max(c => c.Created) : DateTime.MinValue; 
+    
+}
+
+<link href="~/Content/app/Disco.css" rel="stylesheet" />
+
+<h2>&nbsp </h2>
+
+<div class="row">
+    <div class="col-md-7">
+        <b>Comparison details</b>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @Html.Partial("_ComparisonDetails", Model)
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-5">
+        <b>Reports in repository</b>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div id="myProgressbar"><div id="myProgressLabel"></div></div>
+                @if (Model.ComparisonReports != null)
+                {
+                    <table class="table table-hover">
+                        <tr>
+                            <th>
+                                Date created
+                            </th>
+                        </tr>
+                        @foreach (var report in Model.ComparisonReports)
+                        {
+                            <tr class="@ReportExpired(report.Created)">
+                                <td>
+                                    <a href="@Url.Action("Report", new { id = report.ComparisonReportId })">
+                                        @string.Format("{0:F}", report.Created)
+                                    </a>
+                                </td>
+                                <td>
+                                    <a class="btn btn-danger btn-xs" onclick="return confirm('Are you sure?');" href="@Url.Action("DeleteReport", new { id = report.ComparisonReportId })">
+                                        <span class="glyphicon glyphicon-remove"
+                                              data-toggle="tooltip" data-placement="top" title="Delete that customer"></span>
+                                    </a>                                    
+                                </td>
+                            </tr>
+                        }
+                    </table> 
+                }
+            </div>
+        </div>        
+        
+        <span class="glyphicon glyphicon-barcode"></span>
+        <i style="color:gray;font-size:small;"> @DiscoController._reportsDumpDirectory</i>
+    </div>
+</div>
+
+<div class="modal fade" id="modalGoogleStopped">
+    <div class="modal-dialog">
+        <div class="modal-content panel-danger">
+            <div class="modal-header panel-heading">
+                <h4 class="modal-title" id="modalGoogleStopped-title">Google is not responding</h4>
+            </div>
+            <div class="modal-body">
+                <p>Please try again later..&hellip;</p>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-warning" id="urlReport">Go to report</a>
+                <button type="button" class="btn btn-danger" onclick="location.reload()">Cancel</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<style>
+    .ui-progressbar {
+        position: relative;
+    }
+
+    #myProgressLabel {
+        position: absolute;
+        left: 50%;
+        top: 4px;
+        font-weight: bold;
+        text-shadow: 1px 1px 0 #fff;
+    }
+</style>
+
+
+@section TopMenu{
+    <div class="col-md-8">
+        <a class="btn btn-default btn" href="@Url.Action("Index", "Contact")">
+            Home &nbsp<span class="glyphicon glyphicon-folder-open"></span>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <button class="btn btn-default btn" onclick="GetReport(@Model.DistanceComparisonId, this)" data-loading-text="Loading...">
+            Generate new report &nbsp<span class="glyphicon glyphicon-cog"></span>
+        </button>
+    </div>
+}
+
+@section Scripts {
+
+    <script>
+
+        var getProgressStatusForReportUrl = "@Url.Action("GetProgressStatusForReport")/",
+            myProgressbar = $("#myProgressbar"),
+            myProgressLabel = $("#myProgressLabel");
+
+        function GetReport(discoId, button) {
+            $(button).button('loading');
+
+            $.getJSON("@Url.Action("NewReportForDisco")/" + discoId, null,
+                function(newReportForDisco) {
+                    getProgressStatusForReportUrl += newReportForDisco.ComparisonReportId;
+
+                    var xurl = "@Url.Action("Report")/" + newReportForDisco.ComparisonReportId;
+                $("#urlReport").attr("href", xurl);
+
+                myProgressbar.progressbar({
+                    value: false,
+                    complete: function () {
+                        // give time to save 
+                        setTimeout(NavigateAfterReportCompleted, 2000);
+                    }
+                });
+                setTimeout(Progress, 1000);
+            });
+        }
+
+        function NavigateAfterReportCompleted() {
+            window.location.href = $("#urlReport").attr("href");
+        }
+
+        function Progress() {
+            $.getJSON(getProgressStatusForReportUrl, null,
+                function(getProgressStatusForReport) {
+
+                    if (getProgressStatusForReport.NoReplyError != "" && getProgressStatusForReport.NoReplyError != null) {
+                        $('#modalGoogleStopped-title').html(getProgressStatusForReport.NoReplyError);
+                        $('#modalGoogleStopped').modal('show');
+                    }
+
+                    myProgressbar.progressbar("value", getProgressStatusForReport.PercentageCompleted);
+                    myProgressLabel.text(getProgressStatusForReport.PercentageCompleted + "%");
+                });
+            setTimeout(Progress, 1000);
+        }
+    </script>
+}
+
+
+@helper ReportExpired(DateTime report)
+{
+    if (report < ViewBag.lastAddressModified)
+    {<text>danger</text>}
+    else if (report < DateTime.Now.AddMonths(-1))
+    {<text>warning</text>}
+    else
+    {<text>success</text>}
+}

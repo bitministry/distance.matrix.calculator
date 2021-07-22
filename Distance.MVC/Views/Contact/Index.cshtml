@@ -1,0 +1,187 @@
+﻿@using Distance.Business
+@model IEnumerable<Contact>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Content/app/Disco.css" rel="stylesheet" />
+
+<h2>&nbsp </h2>
+
+<div class="row">
+    <div class="col-md-9">
+        <b>Contacts management</b>
+        <hr>
+    </div>
+    <div class="col-md-3">
+        <b>The report</b>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-9">
+
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                            Business Customers
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse in">
+                    <div class="panel-body">
+                        @Html.Partial("_contactList", @Model.Where(x => x.ContactType == ContactType.BusinessCustomer))
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                            Competitors
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseTwo" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        @Html.Partial("_contactList", @Model.Where(x => x.ContactType == ContactType.Competitor))
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                            Private Customers
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseThree" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        @Html.Partial("_contactList", @Model.Where(x => x.ContactType == ContactType.PrivateCustomer))
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-3">
+        <h5>Pinned customer:</h5>
+        <ul class="contactList">
+            <li id="pinnedCustomer"></li>
+        </ul>
+        Included competitors:
+        <ul class="contactList" id="includedCompetitors"></ul>
+        <hr/><br/>
+        <p>
+            <button class="btn btn-success btn" onclick="$('#formCompare').submit();" disabled="true" id="buttonCompare">
+                Compare distances &nbsp<span class="glyphicon glyphicon-cog"></span>
+            </button>
+        </p>
+    </div>
+</div>
+<form action="~/Disco/Details" method="get" id="formCompare" style="display:none;">
+    <input id="customerId" name="customerId"/>
+    <input id="competitorIds" name="competitorIds" />
+</form>
+
+@if (@ViewBag.FirewallException != null)
+{
+    <div class="modal fade" id="firewallExceptionModal">
+        <div class="modal-dialog">
+            <div class="modal-content panel-danger">
+                <div class="modal-header panel-heading">
+                    <h4 class="modal-title" id="modalGoogleStopped-title">@ViewBag.FirewallException</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Firewall blocking the back-end requests to Google API..&hellip;</p>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+    <script>
+        $(function() {
+            $('#firewallExceptionModal').modal('show');
+        });
+    </script>
+}
+
+@section TopMenu{
+<div class="col-md-8">
+    
+    <a class="btn btn-default btn" href="@Url.Action("Edit", "Contact", new { id = Statics.EnterpriseRootContact.ContactId })">
+        Enterprise Branch Directory &nbsp <span class="glyphicon glyphicon-home"></span>
+    </a>
+    <span class="badge">@Statics.EnterpriseRootContact.Addresses.Count</span>
+    <span style="font-size: 10px;" class="label label-info">
+        @string.Format("{0:ddd, MMM d, yyyy}", Statics.EnterpriseRootContact.AddressesModified)
+    </span>
+
+</div>
+<div class="col-md-4">
+    
+    <a class="btn btn-default btn" href="@Url.Action("Edit", "Contact")">
+        Create new contact &nbsp <span class="glyphicon glyphicon-plus"></span>
+    </a>
+
+</div>    
+
+}
+
+@section Scripts {
+
+<script>
+    var competitors = [];
+    var competitorIds = [];
+    function Include(contactId, contactType, contactName, addressCount) {
+        addressCount = typeof addressCount !== 'undefined' ? addressCount : 0;
+
+        if (contactType != "Competitor") {
+            $("#customerId").val(contactId);
+            $('#buttonCompare').prop('disabled', false);
+            $("#pinnedCustomer").html("<b>" + contactName + "</b> <span class='badge'>" + addressCount + "</span>");
+            return;
+        }
+
+        var inArr = $.inArray(contactId, competitorIds);
+        if (inArr > -1)
+            return;
+
+        competitorIds.push(contactId);
+
+        var newItem = { contactName: contactName, addressCount: addressCount };
+        competitors.push(newItem);
+        BindCompetitors();
+    }
+
+    function BindCompetitors() {
+        var template = $("#tmplCompetitorListItem").html();
+        $("#includedCompetitors").html($.tmpl(template, competitors));
+        $("#includedCompetitors li button").click(function () {
+            competitors.splice($(this.parentElement).index(), 1);
+            competitorIds.splice($(this.parentElement).index(), 1);
+            BindCompetitors();
+        });
+        $('#competitorIds').val(competitorIds);
+    }
+
+</script>
+<script type="template" id="tmplCompetitorListItem">
+    <li >
+        <button class="btn btn-danger btn-xs">
+            <span class="glyphicon glyphicon-remove"></span>
+        </button>
+        &nbsp
+        <b>${contactName}</b> <span class="badge">${addressCount}</span>
+    </li>
+</script>
+
+
+}
+
+

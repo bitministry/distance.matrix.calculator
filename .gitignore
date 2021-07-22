@@ -1,0 +1,8 @@
+Distance.ConsoleTest/
+Distance.MVC/obj/
+DiscoDump/
+MsSql.Setup/
+Distance/packages/
+**/bin/
+**/obj/
+

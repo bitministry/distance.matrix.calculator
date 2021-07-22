@@ -1,0 +1,73 @@
+﻿@using System.Web.UI.WebControls
+@using Distance.Business
+@model DistanceComparison
+
+<div>
+    <a href="@Url.Action("DetailsForId", "Disco", new { id = Model.DistanceComparisonId })">Comparison @Model.DistanceComparisonId</a>
+</div>
+<hr/>
+<br/>
+<ul class="contactList">
+    <li>
+        <a class="btn btn-default btn-xs" href="@Url.Action("Edit", "Contact", new { id = Statics.EnterpriseRootContact.ContactId })">
+            <span class="glyphicon glyphicon-edit"></span>
+        </a>
+        <img src="~/Content/app/ban_enterpriseLogo.jpg" />
+        <span class="badge">@Statics.EnterpriseRootContact.Addresses.Count</span>
+        <span style="font-size: 10px;"
+              class="label label-@ContactModifiedLabel(Statics.EnterpriseRootContact.AddressesModified)">
+            @string.Format("{0:F}", Statics.EnterpriseRootContact.AddressesModified)
+        </span>
+    </li>
+</ul>
+
+<h5>Pinned customer:</h5>
+<ul class="contactList">
+    <li>
+        <a class="btn btn-default btn-xs" href="@Url.Action("Edit", "Contact", new { id = Model.Customer.ContactId })">
+            <span class="glyphicon glyphicon-edit"></span>
+        </a>
+        <b> @Model.Customer.Name </b>
+        <span class="badge">@Model.Customer.Addresses.Count</span>
+        <span style="font-size: 10px;"
+              class="label label-@ContactModifiedLabel(Model.Customer.AddressesModified)">
+            @string.Format("{0:F}", Model.Customer.AddressesModified)
+        </span>
+    </li>
+</ul>
+<h5>Included competitors:</h5>
+
+<ul class="contactList">
+
+    @foreach (var comp in Model.CompetitorsIncluded)
+    {
+        <li>
+            <a class="btn btn-default btn-xs" href="@Url.Action("Edit", "Contact", new { id = comp.ContactId })">
+                <span class="glyphicon glyphicon-edit"></span>
+            </a>
+            <b>@comp.Name</b>
+            <span class="badge">@comp.Addresses.Count</span>
+            <span style="font-size: 10px;"
+                  class="label label-@ContactModifiedLabel( comp.AddressesModified )">
+                @string.Format("{0:F}", comp.AddressesModified)
+            </span>
+        </li>
+    }
+</ul>
+<hr style="margin-bottom:8px;"/>
+<div class="pull-right text-nowrap">
+    Ultimate last address modified:
+    <span style="font-size: 10px;"
+          class="label label-@ContactModifiedLabel(ViewBag.lastAddressModified)">
+        @string.Format("{0:F}", ViewBag.lastAddressModified)
+    </span>
+</div>
+
+
+@helper ContactModifiedLabel(DateTime? contactModified)
+{
+    if (contactModified < ViewBag.lastReport || contactModified == null)
+    {<text>info</text>}
+    else
+    {<text>danger</text>}
+}

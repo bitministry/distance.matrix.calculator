@@ -1,0 +1,18 @@
+﻿@using Distance.MVC.Helpers
+@model Span
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <span>@Model.Destination.PostCode</span>
+        <span class="text-nowrap pull-right">
+            @if (Model.Error == null)
+            {
+                <span class="label label-default">@Model.Meter.ToMiles()</span>
+            }
+            else
+            {
+                <span class="label label-danger">@Model.Error</span>
+            }
+        </span>
+    </div>
+</div>

@@ -1,0 +1,72 @@
+﻿@using System.Configuration
+@model Distance.Business.Entitiy.Contact
+
+<h4>General data</h4>
+<hr />
+
+<div class="row">
+    <div class="form-group">
+        <div class="col-md-4">
+            <label for="selectContactType">Type</label>
+        </div>
+        <div class="col-md-8">
+
+            <select class="multiselect" id="selectContactType" name="ContactType">
+                @foreach (var xs in (new String[] {"BusinessCustomer", "Competitor", "PrivateCustomer"}))
+                                {
+                    <option value="@xs" @Html.Raw(xs == @Model.ContactType.ToString() ? "selected" : "")>@xs</option>
+                                }
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group">
+        <div class="col-md-4">
+            <label for="selectContactType">Name</label>
+        </div>
+        <div class="col-md-8">
+            <input name="Name" placeholder="Name" class="form-control" value="@Model.Name"
+                   style="font-weight: bold;"
+                   data-bv-notempty="true"
+                   data-bv-notempty-message="The last name is required and cannot be empty" />
+        </div>
+    </div>
+</div>
+<hr>
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-2">
+                <label for="selectContactType">Email</label>
+            </div>
+            <div class="col-md-10">
+                <input type="text" name="Email" placeholder="Email" class="form-control" value="@Model.Email"
+                       maxlength="66"
+                       data-bv-stringlength-message="Maximum 66 letters" />
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-2">
+                <label for="selectContactType" onclick="$('#attributeForm').submit()">Phone</label>
+            </div>
+            <div class="col-md-10">
+                <input type="text" name="Phone" placeholder="Phone" class="form-control" value="@Model.Phone"
+                       maxlength="33"
+                       data-bv-stringlength-message="Maximum 33 letters" />
+            </div>
+        </div>
+    </div>
+
+</div>
+@if (ConfigurationManager.AppSettings["Google.maps.javascript.apiKey"] != null)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <div id="map-canvas"></div>
+        </div>
+    </div>
+}

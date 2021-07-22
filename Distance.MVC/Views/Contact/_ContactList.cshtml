@@ -1,0 +1,64 @@
+﻿@model IEnumerable<Contact>
+
+<table class="table">
+    <tr>
+        <th></th>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Phone)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Email)
+        </th>
+        <th>
+            Addresses
+        </th>
+        <th>
+            Last Modified
+        </th>
+        <th>
+            Include
+        </th>
+        
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td width="10">
+                <a class="btn btn-default btn-xs" href="@Url.Action("Edit", "Contact", new { id = item.ContactId })">
+                    <span class="glyphicon glyphicon-edit"></span>
+                </a>
+            </td>
+            <td>
+                @Html.ActionLink(item.Name , "Edit", new { id = item.ContactId })
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Phone)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @item.Addresses.Count
+            </td>
+            <td>
+                @item.AddressesModified
+            </td>
+            <td>
+                <button class="btn btn-success btn-xs" onclick="Include( @item.ContactId, '@item.ContactType', '@item.Name',  @item.Addresses.Count )">
+                    <span class="glyphicon @if (item.ContactType.ToString() == "Competitor")
+                                           {
+                                               <text>glyphicon-share-alt</text>
+                                           }
+                                           else {
+                                                <text>glyphicon-pushpin</text>
+                    }"></span>
+                </button>      
+            </td>
+        </tr>
+    }
+
+</table>

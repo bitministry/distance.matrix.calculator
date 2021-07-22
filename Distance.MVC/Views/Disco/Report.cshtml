@@ -1,0 +1,208 @@
+﻿@using System.Web.UI.WebControls
+@using Distance.Business
+@using Distance.MVC.Helpers
+@using System.Configuration
+
+@model ComparisonReport
+
+@{
+    ViewBag.Title = "Distance Comparison Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>&nbsp </h2>
+<style type="text/css">
+    .tableFloatingHeaderOriginal th {
+        background-color: #fff;
+    }
+    #calculationsRow input {
+        width: 50px;
+        background-color: whitesmoke;
+    }
+    #calculationsRow td {
+        white-space: nowrap;
+    }
+    .fuelCostOutput {
+        font-weight: bold;
+    }
+
+</style>
+
+
+<div class="panel panel-default">
+    <table class="table table-hover" id="tableReport">
+        <thead>
+            <tr>
+                <th></th>
+                <th>@Model.CustomerWithDistances.Name <img src="../../Content/markers/dots/red-dot.png"></th>
+                <th>Enterprise <img src="../../Content/markers/enterpriseRootContact.png"></th>
+                @foreach (var competitor in Model.DistanceComparison.CompetitorsIncluded)
+                {
+                    <th id="th@(competitor.ContactId)">@competitor.Name</th>
+                }
+            </tr>
+        </thead>
+        <tbody></tbody>
+        @*@foreach (var address in Model.CustomerWithDistances.Addresses)
+            {
+            @Html.Partial("_customerAddressInReport", address)
+            }*@
+        <tfoot>
+            <tr class="success">
+                <td></td>
+                <td>Average</td>
+                @foreach (KeyValuePair<int, int?> distance in ViewBag.averageDistances)
+                {
+                    <td>
+                        @( ((int?)distance.Value).MetersToMiles() )
+                    </td>
+                }
+            </tr>
+            @if (Model.Log != null)
+            {
+                <tr class="danger">
+                    <td></td>
+                    <td></td>
+                    <td>
+                        @foreach (var enterpriseFail in Model.Log.FirstOrDefault(x => x.TargetContact.ContactType == ContactType.Enterprise).RequestFailureLog)
+                        {
+                            <div>@enterpriseFail.ExceptionMessage</div>
+                        }
+                    </td>
+                    @foreach (var targetContact in Model.Log.Where(x => x.TargetContact.ContactType != ContactType.Enterprise))
+                    {
+                        <td>
+                            @foreach (var compeditorFail in targetContact.RequestFailureLog)
+                            {
+                                <div>@compeditorFail.ExceptionMessage</div>
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+            <tr>
+                <td></td>
+                <td colspan="2">Fuel D/C Mileage</td>
+                @foreach (var distance in ((IDictionary<int,int?>)ViewBag.averageDistances).Skip( 1 ))
+                {
+                    <td>
+                        @(((int?)(2*(distance.Value) ) ).MetersToMiles() )
+                    </td>
+                }
+            </tr>
+            <tr id="calculationsRow">
+                <td colspan="3">
+                    <div class="center-block">
+                        Annual fuel cost  
+                        for <input id="hiresPerYear" onchange="CalculateFuelCost()" value="@Model.DistanceComparison.Customer.HiresPerYear"> hires 
+                        based on £<input id="fuelCost" onchange="CalculateFuelCost()" value="@ConfigurationManager.AppSettings["FuelCostPerMile"]"> per mile.
+                    </div>
+                </td>
+                @foreach (var distance in ((IDictionary<int, int?>)ViewBag.averageDistances).Skip(1))
+                {
+                    <td class="fuelCostOutput" data-additional-miles="@(2 * distance.Value / 1609.344 )"></td>
+                }
+
+            </tr>
+        </tfoot>
+
+    </table>
+</div>
+
+
+<textarea class="hidden" id="textareaJson">@ViewBag.json</textarea>
+
+<script type="template" id="tmplCustomerAddressInReport">
+    <tr class="details">
+        <td>
+            <button class="btn btn-default btn-xs" onclick="ComparisonReport.ToggleDetails(${CustomerAddressId}, this)">
+                <span class="glyphicon glyphicon-plus"></span>
+            </button>
+        </td>
+        <td>${CustomerAddressPostCode}</td>
+        <td>{{tmpl(SpansToEnterprise[0]) "#tmplSpanInReport"}}</td>
+        {{each SpansToCompetitors }}
+        <td>{{tmpl($value.SpansTo[0]) "#tmplSpanInReport"}}</td>
+        {{/each}}
+    </tr>
+    <tr class="details hidden" id="trDetails_${CustomerAddressId}">
+        <td></td>
+        <td></td>
+        <td>{{tmpl(ComparisonReport.ArrayShiftByVal(SpansToEnterprise)) "#tmplSpanInReport"}}</td>
+        {{each SpansToCompetitors }}
+        <td>{{tmpl(ComparisonReport.ArrayShiftByVal($value.SpansTo)) "#tmplSpanInReport"}}</td>
+        {{/each}}
+    </tr>
+    <tr class="details hidden" id="trDetailsMap_${CustomerAddressId}">
+        <td></td>
+        <td colspan="${SpansToCompetitors.length+2}">
+            <div class="mapCanvas" id="mapCanvas_${CustomerAddressId}"></div>
+        </td>
+    </tr>
+</script>
+
+<script type="template" id="tmplSpanInReport">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <span>${PostCode}</span>
+            <span class="text-nowrap pull-right">
+                {{if Error }}
+                <span class="label label-danger">${Error}</span>
+                {{else}}
+                <span class="label label-default">${Distance}</span>
+                {{/if}}
+            </span>
+        </div>
+    </div>
+</script>
+
+<style>
+    .details .panel-body {
+        padding: 5px;
+    }
+
+    .details .panel {
+        margin-bottom: 5px;
+    }
+
+    .mapCanvas {
+        width: 100%;
+        height: 400px;
+    }
+</style>
+
+
+@section Scripts {
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=@ConfigurationManager.AppSettings["Google.maps.javascript.apiKey"]"></script>
+    <script src="~/Scripts/app/ComparisonReport.js"></script>
+    <script src="~/Scripts/jquery.stickytableheaders.min.js"></script>
+    <script>
+        $(function() {
+            ComparisonReport.InitFromTextarea();
+            $("#tableReport").stickyTableHeaders({ fixedOffset: $(".navbar-fixed-top") });
+
+            CalculateFuelCost();
+        });
+
+        function CalculateFuelCost() {
+            $(".fuelCostOutput").each(function() {
+                var xcost = $(this).data("additional-miles") * $("#hiresPerYear").val() * $("#fuelCost").val();
+                $(this).html( "£"+ xcost.toFixed(2) );
+            });
+        }
+
+
+    </script>
+}
+
+@section TopMenu{
+    <div class="col-md-8">
+        <a class="btn btn-default btn" href="@Url.Action("Index", "Contact")">
+            Home &nbsp<span class="glyphicon glyphicon-folder-open"></span>
+        </a>
+        <a class="btn btn-default btn" href="@Url.Action("DetailsForId", "Disco", new { id = Model.DistanceComparison.DistanceComparisonId })">
+            Distance comparison header &nbsp<span class="glyphicon glyphicon-th-list"></span>
+        </a>
+    </div>
+
+}

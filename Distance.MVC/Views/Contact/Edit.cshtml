@@ -1,0 +1,201 @@
+﻿@using Distance.Business
+@using System.Configuration
+
+@model Distance.Business.Entitiy.Contact
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>&nbsp;</h2>
+
+<form id="attributeForm" method="post" class="form-horizontal"
+      data-bv-message="This value is not valid"
+      data-bv-feedbackicons-valid="glyphicon glyphicon-ok"
+      data-bv-feedbackicons-invalid="glyphicon glyphicon-remove"
+      data-bv-feedbackicons-validating="glyphicon glyphicon-refresh">
+
+    
+    <div class="row">
+        <div class="col-md-7">
+            @Html.HiddenFor(model => model.ContactId)
+            
+            @switch (Model.ContactType)
+            {
+                case ContactType.Enterprise:
+                    <h4><img src="~/Content/app/ban_enterpriseLogo.jpg" /> branch directory</h4>
+                    <hr />
+                    <br><br>
+                    <input type="hidden" value="Enterprise" name="ContactType">
+                    <input type="hidden" value="EnterpriseRootContact" name="Name">
+                    if (ConfigurationManager.AppSettings["Google.maps.javascript.apiKey"] != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div id="map-canvas"></div>
+                            </div>
+                        </div>
+                    }
+                    break;
+                case ContactType.Competitor:
+                    @Html.Partial("_editCompetitor", Model)
+                    break;
+                default:
+                    @Html.Partial("_editCustomer", Model)
+                    break;
+            }
+        </div>
+        <div class="col-md-3" @Html.Raw(  Model.ContactId == 0 ? "style='display:none'" : "") >
+            <h4>Postcodes of the locations</h4>
+            <hr />
+            <div class="col-md-9">
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <textarea name="postcodes" class="form-control" rows="33" placeholder="Enter post codes, separated by new line.">
+                            @foreach (var address in Model.Addresses.OrderBy( x => x.PostCode ) )
+                            {
+                                @( address.PostCode + Environment.NewLine )
+                            }</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-6">
+                        <label for="selectContactType">Validate against</label>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="multiselect" id="selectCountryValidator" name="CountryValidator">
+                            @foreach (var xs in Statics.CountriesWithValidators())
+                            {
+                                <option value="@xs" @Html.Raw(xs == @Model.ContactType.ToString() ? "selected" : "")>@xs</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            @if (Model.InvalidPostCodes != null)
+            {
+                <div class="col-md-3">
+                    <h5>Invalid</h5>
+                    <hr />
+                    <ul id="ulInvalid">
+                        @foreach (var xs in Model.InvalidPostCodes)
+                        {
+                            <li>@xs</li>
+                        }
+                    </ul>
+                </div> 
+            }
+        </div>
+    </div>
+    <input type="submit" id="damnJavascriptNotSubmitting" style="display:none;"/>
+</form>
+
+<style>
+    .row {
+    }
+
+    #ulInvalid {
+        padding: 0px;
+        list-style-type: none;
+    }
+
+    #ulInvalid li {
+        white-space: nowrap;
+    }
+
+    #map-canvas {
+        height: 350px;
+        width: 100%;
+    } 
+
+</style>
+
+
+@section TopMenu{
+    
+<div class="col-md-8">
+    <a class="btn btn-default btn" href="@Url.Action("Index", "Contact")">
+        Home &nbsp<span class="glyphicon glyphicon-folder-open"></span>
+    </a>
+</div>
+<div class="col-md-4">
+    <button class="btn btn-default btn" name="Save" onclick="$('#damnJavascriptNotSubmitting').click()">
+        Save contact &nbsp<span class="glyphicon glyphicon-ok"></span>
+    </button>
+@if (Model.ContactType != ContactType.Enterprise) { 
+    <a class="btn btn-danger btn" onclick="return confirm('Are you sure?');" href="@Url.Action("Delete", "Contact", new { id = Model.ContactId })">
+        Delete &nbsp<span class="glyphicon glyphicon-remove"></span>
+    </a>
+}
+</div>    
+
+}
+
+@section Scripts {
+
+<script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=@ConfigurationManager.AppSettings["Google.maps.javascript.apiKey"]">
+</script>
+
+    <script>
+        var map; 
+
+        $(document).ready(function () {
+
+            var mapOptions = {
+                center: new google.maps.LatLng(51.38494009999999, -0.3514683),
+                streetViewControl:false,
+                zoom: 1
+            };
+
+            map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+            $.getJSON("../Locations/@Model.ContactId", null, function (locations) {
+                var bounds = new google.maps.LatLngBounds();
+
+                for (index = 0; index < locations.length; ++index) {
+                    var location = new google.maps.LatLng(locations[index].Lat, locations[index].Lng); 
+                    new google.maps.Marker({
+                        map: map,
+                        title: locations[index].PostCode,
+                        icon : "../../@ViewBag.marker", 
+                        position: location 
+                    });
+                    bounds.extend(location);
+                }
+
+                map.fitBounds(bounds);
+                map.setCenter(bounds.getCenter());
+
+            });
+
+            $('#attributeForm').bootstrapValidator();
+
+            $('#selectCountryValidator').multiselect();
+            
+
+            $('#selectContactType').multiselect({
+                onChange: function (element, checked) {
+                    if (element[0].value != "EnterpriseRootContact") {
+                        $.getJSON("Upload/ContactsFind/?contactType=Competitor", function (data) {
+                            $("#divDelectContactItem").css("display", "block");
+                            var selectContactItem = $('#selectContactItem');
+                            $.each(data, function () {
+                                selectContactItem.append($("<option />").val(this.Label).text(this.Value));
+                            });
+                            selectContactItem.prepend($("<option />").val("*create-new*").text("* Create New Contact"));
+                            selectContactItem.prepend($("<option />").val("").text(""));
+                            selectContactItem.multiselect({
+                                enableFiltering: true
+                            });
+                        });
+                    }
+                    else
+                        $("#divDelectContactItem").css("display", "none");
+                }
+            });
+        });
+    </script>
+
+}

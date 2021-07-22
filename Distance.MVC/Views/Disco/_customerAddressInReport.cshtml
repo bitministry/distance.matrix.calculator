@@ -1,0 +1,50 @@
+﻿@using Distance.Business
+
+@model Address
+@{
+    var compeditorsSpans = Model.SpansToTargets.Where(x => x.Destination.ContactId != Statics.EnterpriseRootContact.ContactId) ;
+    var enterpriseSpans = Model.SpansToTargets.FirstOrDefault(x => x.Destination.ContactId == Statics.EnterpriseRootContact.ContactId);
+    var enterpriceOrderByMeters = enterpriseSpans.Spans.OrderByDescending(x => x.Error == null).ThenBy(x => x.Meter);
+}
+<tr class="details">
+    <td>
+        <button class="btn btn-default btn-xs" onclick="ToggleDetails(@Model.AddressId, this)">
+            <span class="glyphicon glyphicon-plus"></span>
+        </button>
+    </td>
+    <td>@Model.PostCode</td>
+    <td>
+        @Html.Partial("_spanInReport", enterpriceOrderByMeters.FirstOrDefault())
+    </td>
+    @foreach (var compeditor in compeditorsSpans)
+    {
+    <td>
+        @Html.Partial("_spanInReport", compeditor.Spans.OrderByDescending(x => x.Error == null).ThenBy(x => x.Meter).FirstOrDefault())
+    </td>
+    }
+</tr>
+<tr class="details hidden" id="trDetails_@Model.AddressId">
+    <td></td>
+    <td></td>
+    <td>
+        @foreach (var span in enterpriseSpans.Spans.OrderByDescending(x => x.Error == null).ThenBy(x => x.Meter).Take(5))
+        {
+            @Html.Partial("_spanInReport", span)
+        }
+    </td>
+    @foreach (var compeditor in compeditorsSpans)
+    {
+        <td>
+            @foreach (var span in compeditor.Spans.OrderByDescending(x => x.Error == null).ThenBy(x => x.Meter).Take(5) )
+            {
+                @Html.Partial("_spanInReport", span)
+            }
+        </td>
+    }
+</tr>
+<tr class="details hidden" id="trDetailsMap_@Model.AddressId">
+    <td></td>
+    <td colspan="@( compeditorsSpans.Count() + 2 )">
+        <div class="mapCanvas" id="mapCanvas_@Model.AddressId"></div>
+    </td>
+</tr>

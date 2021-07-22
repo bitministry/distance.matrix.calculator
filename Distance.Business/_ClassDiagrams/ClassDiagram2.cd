@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Distance.Business.Statics" Collapsed="true">
+    <Position X="7" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAEAIAAAAAAAAAAABAACAAAAQEAACAA=</HashCode>
+      <FileName>Statics.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Distance.Business.Entitiy.Address" Collapsed="true">
+    <Position X="0.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAACIAAAAACAAAAAAAAAAAAAAgAAAAoACAAAA=</HashCode>
+      <FileName>Entitiy\Address.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Distance.Business.Entitiy.ComparisonReport">
+    <Position X="9.25" Y="0.5" Width="1.75" />
+    <NestedTypes>
+      <Struct Name="Distance.Business.Entitiy.ComparisonReport.LogForTarget" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Entitiy\ComparisonReport.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQAAAAAIAAAAAAACgAgASAAAAAAAAAAAA=</HashCode>
+      <FileName>Entitiy\ComparisonReport.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Distance.Business.Entitiy.Contact">
+    <Position X="3.5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAJAAhAYACABAAAAAAEAAAQAIAAAAIEAAAAAIAAAAAA=</HashCode>
+      <FileName>Entitiy\Contact.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Distance.Business.Entitiy.DistanceComparison">
+    <Position X="6" Y="0.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAEAIAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>Entitiy\DistanceComparison.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Distance.Business.Entitiy.GeoLocation" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Entitiy\GeoLocation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Distance.Business.Entitiy.Span" Collapsed="true">
+    <Position X="0.75" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAIAgAAAAAQEgAAABAgAAAE=</HashCode>
+      <FileName>Entitiy\Span.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Distance.Business.Interfaces.IGenericRepository&lt;TEntity&gt;" Collapsed="true">
+    <Position X="10.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAJAAACAAAABAEEAAAAAAAAEIAAAAAIAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IGenericRepository.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="Distance.Business.Entitiy.ContactType" Collapsed="true">
+    <Position X="10.75" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAAAAAAAAAAAAAAAAAAEAAAAAAAQAAAAEAA=</HashCode>
+      <FileName>Entitiy\Contact.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
