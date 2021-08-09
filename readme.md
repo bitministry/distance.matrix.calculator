@@ -8,5 +8,3 @@ tech stack:
 domain driven design
 mssql, entity framework 
 asp.net mvc, bootstrap 
-
-ps. the software was developed for Enterprice Rent-a-car 
